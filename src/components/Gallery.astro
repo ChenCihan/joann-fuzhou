@@ -16,6 +16,32 @@ interface Props {
 	description?: string;
 }
 const { images, title = 'Gallery', subtitle, description } = Astro.props;
+
+interface TapeConfig {
+	tapeV: number;
+	wearV: number;
+	tapes: number;
+	tape1Pos: string;
+	tape2Style: string;
+	tape3Hide: string;
+	loading: 'eager' | 'lazy';
+}
+const tapeConfigs: TapeConfig[] = images.map((_, i) => {
+	const n = i % 20;
+	const tapes = n === 0 ? 1 : n <= 4 ? 2 : n <= 9 ? 3 : 4;
+	const tape1Pos = (i % 2 === 0) ? 'tl' : 'tr';
+	const tape2Style = (n <= 2) ? 'top' : (i % 2 === 0) ? 'diag-tlbr' : 'diag-trbl';
+	const tape3Hide = (i % 4 === 0) ? 'br' : (i % 4 === 1) ? 'bl' : (i % 4 === 2) ? 'tr' : 'tl';
+	return {
+		tapeV: i % 6,
+		wearV: i % 5,
+		tapes,
+		tape1Pos,
+		tape2Style,
+		tape3Hide,
+		loading: i < 8 ? 'eager' : 'lazy',
+	};
+});
 ---
 
 <Layout title={title} description={description ?? 'A photo gallery'}>
@@ -52,8 +78,7 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 				role="list"
 			>
 				{images.map((img, i) => {
-					const tapeV = i % 8;
-					const wearV = i % 5;
+					const c = tapeConfigs[i];
 					return (
 					<a
 						href={img.src}
@@ -63,11 +88,17 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 						role="listitem"
 					>
 						<div
-							class="nostalgia-card photo-on-wall overflow-hidden transition-all duration-500 ease-out group-hover:-translate-y-0.5"
-							data-wear={wearV}
+							class="nostalgia-card photo-on-wall overflow-visible transition-all duration-500 ease-out group-hover:-translate-y-0.5"
+							data-wear={c.wearV}
+							data-tapes={c.tapes}
+							data-tape-1={c.tapes === 1 ? c.tape1Pos : undefined}
+							data-tapes-2={c.tapes === 2 ? c.tape2Style : undefined}
+							data-tapes-3={c.tapes === 3 ? c.tape3Hide : undefined}
 						>
-							<span class="tape tape-1" data-tape-v={tapeV} aria-hidden="true"></span>
-							<span class="tape tape-2" data-tape-v={(tapeV + 3) % 8} aria-hidden="true"></span>
+							<span class="tape tape-tl" data-tape-v={c.tapeV} aria-hidden="true"></span>
+							<span class="tape tape-tr" data-tape-v={(c.tapeV + 1) % 6} aria-hidden="true"></span>
+							<span class="tape tape-bl" data-tape-v={(c.tapeV + 2) % 6} aria-hidden="true"></span>
+							<span class="tape tape-br" data-tape-v={(c.tapeV + 3) % 6} aria-hidden="true"></span>
 							<div class="photo-inner">
 								<span class="photo-scuff" aria-hidden="true"></span>
 								<Image
@@ -76,7 +107,7 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 									width={img.width}
 									height={img.height}
 									class="vintage-thumb w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-									loading={i < 8 ? 'eager' : 'lazy'}
+									loading={c.loading}
 									decoding="async"
 								/>
 							</div>
@@ -196,12 +227,13 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 		z-index: 1;
 	}
 
-	/* Physical photo on wall: paper border, shadow, slight rotation */
+	/* Physical photo on wall: paper border, shadow, slight rotation. overflow-visible so tape can extend onto wall */
 	.nostalgia-card.photo-on-wall {
 		position: relative;
 		background: transparent;
 		border: none;
 		padding: 0;
+		overflow: visible;
 		box-shadow:
 			0 4px 12px rgba(0, 0, 0, 0.25),
 			0 1px 3px rgba(0, 0, 0, 0.2);
@@ -235,22 +267,47 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 			1px 2px 4px rgba(0,0,0,0.15);
 		border-radius: 0;
 	}
-	.tape-1[data-tape-v="0"] { top: -6px; left: 8%; width: 42px; height: 16px; transform: rotate(-38deg); }
-	.tape-1[data-tape-v="1"] { top: -4px; left: 18%; width: 38px; height: 14px; transform: rotate(-42deg); }
-	.tape-1[data-tape-v="2"] { top: -8px; left: 5%; width: 48px; height: 12px; transform: rotate(-28deg); }
-	.tape-1[data-tape-v="3"] { top: -2px; right: 15%; left: auto; width: 40px; height: 15px; transform: rotate(35deg); }
-	.tape-1[data-tape-v="4"] { top: 12%; left: -5px; width: 14px; height: 52px; transform: rotate(-12deg); }
-	.tape-1[data-tape-v="5"] { top: -5px; left: 22%; width: 35px; height: 18px; transform: rotate(-45deg); }
-	.tape-1[data-tape-v="6"] { top: -3px; left: 12%; width: 45px; height: 13px; transform: rotate(-32deg); }
-	.tape-1[data-tape-v="7"] { top: 8%; right: -4px; left: auto; width: 12px; height: 46px; transform: rotate(8deg); }
-	.tape-2[data-tape-v="0"] { bottom: -6px; right: 12%; width: 48px; height: 14px; transform: rotate(-25deg); }
-	.tape-2[data-tape-v="1"] { bottom: -4px; right: 8%; width: 40px; height: 16px; transform: rotate(-32deg); }
-	.tape-2[data-tape-v="2"] { bottom: 15%; right: -6px; left: auto; width: 13px; height: 44px; transform: rotate(15deg); }
-	.tape-2[data-tape-v="3"] { bottom: -5px; left: 15%; right: auto; width: 44px; height: 12px; transform: rotate(28deg); }
-	.tape-2[data-tape-v="4"] { bottom: -7px; right: 20%; width: 38px; height: 15px; transform: rotate(-20deg); }
-	.tape-2[data-tape-v="5"] { bottom: 10%; left: -5px; right: auto; width: 15px; height: 50px; transform: rotate(-8deg); }
-	.tape-2[data-tape-v="6"] { bottom: -4px; right: 25%; width: 42px; height: 14px; transform: rotate(-35deg); }
-	.tape-2[data-tape-v="7"] { bottom: -6px; left: 8%; right: auto; width: 36px; height: 16px; transform: rotate(22deg); }
+	/* Tape count: 1 = top edge only (tl or tr), 2 = top two or diagonal, 3 = one corner missing, 4 = all */
+	.photo-on-wall[data-tapes="1"] .tape-bl,
+	.photo-on-wall[data-tapes="1"] .tape-br { display: none; }
+	.photo-on-wall[data-tapes="1"][data-tape-1="tr"] .tape-tl { display: none; }
+	.photo-on-wall[data-tapes="1"][data-tape-1="tl"] .tape-tr { display: none; }
+	.photo-on-wall[data-tapes="2"][data-tapes-2="top"] .tape-bl,
+	.photo-on-wall[data-tapes="2"][data-tapes-2="top"] .tape-br { display: none; }
+	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-tlbr"] .tape-tr,
+	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-tlbr"] .tape-bl { display: none; }
+	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-trbl"] .tape-tl,
+	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-trbl"] .tape-br { display: none; }
+	.photo-on-wall[data-tapes="3"][data-tapes-3="br"] .tape-br,
+	.photo-on-wall[data-tapes="3"][data-tapes-3="bl"] .tape-bl,
+	.photo-on-wall[data-tapes="3"][data-tapes-3="tr"] .tape-tr,
+	.photo-on-wall[data-tapes="3"][data-tapes-3="tl"] .tape-tl { display: none; }
+
+	/* More random orientations: 6 variants per corner, wider angle range */
+	.tape-tl[data-tape-v="0"] { top: -10px; left: -6px; width: 46px; height: 14px; transform: rotate(-28deg); }
+	.tape-tl[data-tape-v="1"] { top: -12px; left: -8px; width: 44px; height: 15px; transform: rotate(-44deg); }
+	.tape-tl[data-tape-v="2"] { top: -9px; left: -5px; width: 48px; height: 14px; transform: rotate(-35deg); }
+	.tape-tl[data-tape-v="3"] { top: -11px; left: -7px; width: 45px; height: 15px; transform: rotate(-52deg); }
+	.tape-tl[data-tape-v="4"] { top: -10px; left: -6px; width: 47px; height: 14px; transform: rotate(-31deg); }
+	.tape-tl[data-tape-v="5"] { top: -12px; left: -7px; width: 43px; height: 16px; transform: rotate(-39deg); }
+	.tape-tr[data-tape-v="0"] { top: -10px; right: -6px; left: auto; width: 46px; height: 14px; transform: rotate(28deg); }
+	.tape-tr[data-tape-v="1"] { top: -12px; right: -8px; left: auto; width: 44px; height: 15px; transform: rotate(44deg); }
+	.tape-tr[data-tape-v="2"] { top: -9px; right: -5px; left: auto; width: 48px; height: 14px; transform: rotate(35deg); }
+	.tape-tr[data-tape-v="3"] { top: -11px; right: -7px; left: auto; width: 45px; height: 15px; transform: rotate(52deg); }
+	.tape-tr[data-tape-v="4"] { top: -10px; right: -6px; left: auto; width: 47px; height: 14px; transform: rotate(31deg); }
+	.tape-tr[data-tape-v="5"] { top: -12px; right: -7px; left: auto; width: 43px; height: 16px; transform: rotate(39deg); }
+	.tape-bl[data-tape-v="0"] { bottom: -10px; left: -6px; width: 46px; height: 14px; transform: rotate(28deg); }
+	.tape-bl[data-tape-v="1"] { bottom: -12px; left: -8px; width: 44px; height: 15px; transform: rotate(44deg); }
+	.tape-bl[data-tape-v="2"] { bottom: -9px; left: -5px; width: 48px; height: 14px; transform: rotate(35deg); }
+	.tape-bl[data-tape-v="3"] { bottom: -11px; left: -7px; width: 45px; height: 15px; transform: rotate(52deg); }
+	.tape-bl[data-tape-v="4"] { bottom: -10px; left: -6px; width: 47px; height: 14px; transform: rotate(31deg); }
+	.tape-bl[data-tape-v="5"] { bottom: -12px; left: -7px; width: 43px; height: 16px; transform: rotate(39deg); }
+	.tape-br[data-tape-v="0"] { bottom: -10px; right: -6px; left: auto; width: 46px; height: 14px; transform: rotate(-28deg); }
+	.tape-br[data-tape-v="1"] { bottom: -12px; right: -8px; left: auto; width: 44px; height: 15px; transform: rotate(-44deg); }
+	.tape-br[data-tape-v="2"] { bottom: -9px; right: -5px; left: auto; width: 48px; height: 14px; transform: rotate(-35deg); }
+	.tape-br[data-tape-v="3"] { bottom: -11px; right: -7px; left: auto; width: 45px; height: 15px; transform: rotate(-52deg); }
+	.tape-br[data-tape-v="4"] { bottom: -10px; right: -6px; left: auto; width: 47px; height: 14px; transform: rotate(-31deg); }
+	.tape-br[data-tape-v="5"] { bottom: -12px; right: -7px; left: auto; width: 43px; height: 16px; transform: rotate(-39deg); }
 
 	/* Photo paper: aged, yellowed border + wear */
 	.photo-inner {
@@ -332,6 +389,7 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 	}
 	.gallery-item {
 		display: block;
+		overflow: visible;
 	}
 
 	/* PhotoSwipe lightbox: dark overlay to match theme */
