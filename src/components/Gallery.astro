@@ -17,28 +17,32 @@ interface Props {
 }
 const { images, title = 'Gallery', subtitle, description } = Astro.props;
 
+const TAPE_POSITIONS = ['tl', 't', 'tr', 'r', 'br', 'b', 'bl', 'l'] as const;
+function pickTapePositions(i: number, count: number): [string, string] {
+	const a = (i * 7 + 11) % 8;
+	const b = (i * 13 + 3) % 8;
+	const pos1 = TAPE_POSITIONS[a];
+	const pos2 = a === b ? TAPE_POSITIONS[(b + 5) % 8] : TAPE_POSITIONS[b];
+	return [pos1, pos2];
+}
 interface TapeConfig {
 	tapeV: number;
 	wearV: number;
 	tapes: number;
 	tape1Pos: string;
-	tape2Style: string;
-	tape3Hide: string;
+	tape2Pos: string;
 	loading: 'eager' | 'lazy';
 }
 const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 	const n = i % 20;
-	const tapes = n === 0 ? 1 : n <= 4 ? 2 : n <= 9 ? 3 : 4;
-	const tape1Pos = (i % 2 === 0) ? 'tl' : 'tr';
-	const tape2Style = (n <= 2) ? 'top' : (i % 2 === 0) ? 'diag-tlbr' : 'diag-trbl';
-	const tape3Hide = (i % 4 === 0) ? 'br' : (i % 4 === 1) ? 'bl' : (i % 4 === 2) ? 'tr' : 'tl';
+	const tapes = n < 11 ? 1 : n < 17 ? 2 : 0;
+	const [tape1Pos, tape2Pos] = pickTapePositions(i, tapes);
 	return {
-		tapeV: i % 6,
+		tapeV: i % 4,
 		wearV: i % 5,
 		tapes,
 		tape1Pos,
-		tape2Style,
-		tape3Hide,
+		tape2Pos,
 		loading: i < 8 ? 'eager' : 'lazy',
 	};
 });
@@ -109,14 +113,11 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 							class="nostalgia-card photo-on-wall overflow-visible transition-all duration-500 ease-out group-hover:-translate-y-0.5"
 							data-wear={c.wearV}
 							data-tapes={c.tapes}
-							data-tape-1={c.tapes === 1 ? c.tape1Pos : undefined}
-							data-tapes-2={c.tapes === 2 ? c.tape2Style : undefined}
-							data-tapes-3={c.tapes === 3 ? c.tape3Hide : undefined}
+							data-tape-1-pos={c.tapes >= 1 ? c.tape1Pos : undefined}
+							data-tape-2-pos={c.tapes === 2 ? c.tape2Pos : undefined}
 						>
-							<span class="tape tape-tl" data-tape-v={c.tapeV} aria-hidden="true"></span>
-							<span class="tape tape-tr" data-tape-v={(c.tapeV + 1) % 6} aria-hidden="true"></span>
-							<span class="tape tape-bl" data-tape-v={(c.tapeV + 2) % 6} aria-hidden="true"></span>
-							<span class="tape tape-br" data-tape-v={(c.tapeV + 3) % 6} aria-hidden="true"></span>
+							<span class="tape tape-1" data-pos={c.tape1Pos} data-tape-v={c.tapeV} aria-hidden="true"></span>
+							<span class="tape tape-2" data-pos={c.tape2Pos} data-tape-v={(c.tapeV + 1) % 4} aria-hidden="true"></span>
 							<div class="photo-inner">
 								<span class="photo-scuff" aria-hidden="true"></span>
 								<Image
@@ -312,6 +313,8 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 		position: absolute;
 		z-index: 2;
 		pointer-events: none;
+		min-width: 42px;
+		min-height: 18px;
 		background: linear-gradient(
 			180deg,
 			rgba(255, 250, 230, 0.75) 0%,
@@ -326,47 +329,22 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 			1px 2px 4px rgba(0,0,0,0.15);
 		border-radius: 0;
 	}
-	/* Tape count: 1 = top edge only (tl or tr), 2 = top two or diagonal, 3 = one corner missing, 4 = all */
-	.photo-on-wall[data-tapes="1"] .tape-bl,
-	.photo-on-wall[data-tapes="1"] .tape-br { display: none; }
-	.photo-on-wall[data-tapes="1"][data-tape-1="tr"] .tape-tl { display: none; }
-	.photo-on-wall[data-tapes="1"][data-tape-1="tl"] .tape-tr { display: none; }
-	.photo-on-wall[data-tapes="2"][data-tapes-2="top"] .tape-bl,
-	.photo-on-wall[data-tapes="2"][data-tapes-2="top"] .tape-br { display: none; }
-	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-tlbr"] .tape-tr,
-	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-tlbr"] .tape-bl { display: none; }
-	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-trbl"] .tape-tl,
-	.photo-on-wall[data-tapes="2"][data-tapes-2="diag-trbl"] .tape-br { display: none; }
-	.photo-on-wall[data-tapes="3"][data-tapes-3="br"] .tape-br,
-	.photo-on-wall[data-tapes="3"][data-tapes-3="bl"] .tape-bl,
-	.photo-on-wall[data-tapes="3"][data-tapes-3="tr"] .tape-tr,
-	.photo-on-wall[data-tapes="3"][data-tapes-3="tl"] .tape-tl { display: none; }
+	/* Tape count: 0 = none, 1 = one tape, 2 = two tapes. Positions: corners (tl,tr,bl,br) + edges (t,r,b,l) */
+	.tape-1, .tape-2 { display: none; }
+	.photo-on-wall[data-tapes="1"] .tape-1,
+	.photo-on-wall[data-tapes="2"] .tape-1,
+	.photo-on-wall[data-tapes="2"] .tape-2 { display: block; }
 
-	/* More random orientations: 6 variants per corner, wider angle range */
-	.tape-tl[data-tape-v="0"] { top: -10px; left: -6px; width: 46px; height: 14px; transform: rotate(-28deg); }
-	.tape-tl[data-tape-v="1"] { top: -12px; left: -8px; width: 44px; height: 15px; transform: rotate(-44deg); }
-	.tape-tl[data-tape-v="2"] { top: -9px; left: -5px; width: 48px; height: 14px; transform: rotate(-35deg); }
-	.tape-tl[data-tape-v="3"] { top: -11px; left: -7px; width: 45px; height: 15px; transform: rotate(-52deg); }
-	.tape-tl[data-tape-v="4"] { top: -10px; left: -6px; width: 47px; height: 14px; transform: rotate(-31deg); }
-	.tape-tl[data-tape-v="5"] { top: -12px; left: -7px; width: 43px; height: 16px; transform: rotate(-39deg); }
-	.tape-tr[data-tape-v="0"] { top: -10px; right: -6px; left: auto; width: 46px; height: 14px; transform: rotate(28deg); }
-	.tape-tr[data-tape-v="1"] { top: -12px; right: -8px; left: auto; width: 44px; height: 15px; transform: rotate(44deg); }
-	.tape-tr[data-tape-v="2"] { top: -9px; right: -5px; left: auto; width: 48px; height: 14px; transform: rotate(35deg); }
-	.tape-tr[data-tape-v="3"] { top: -11px; right: -7px; left: auto; width: 45px; height: 15px; transform: rotate(52deg); }
-	.tape-tr[data-tape-v="4"] { top: -10px; right: -6px; left: auto; width: 47px; height: 14px; transform: rotate(31deg); }
-	.tape-tr[data-tape-v="5"] { top: -12px; right: -7px; left: auto; width: 43px; height: 16px; transform: rotate(39deg); }
-	.tape-bl[data-tape-v="0"] { bottom: -10px; left: -6px; width: 46px; height: 14px; transform: rotate(28deg); }
-	.tape-bl[data-tape-v="1"] { bottom: -12px; left: -8px; width: 44px; height: 15px; transform: rotate(44deg); }
-	.tape-bl[data-tape-v="2"] { bottom: -9px; left: -5px; width: 48px; height: 14px; transform: rotate(35deg); }
-	.tape-bl[data-tape-v="3"] { bottom: -11px; left: -7px; width: 45px; height: 15px; transform: rotate(52deg); }
-	.tape-bl[data-tape-v="4"] { bottom: -10px; left: -6px; width: 47px; height: 14px; transform: rotate(31deg); }
-	.tape-bl[data-tape-v="5"] { bottom: -12px; left: -7px; width: 43px; height: 16px; transform: rotate(39deg); }
-	.tape-br[data-tape-v="0"] { bottom: -10px; right: -6px; left: auto; width: 46px; height: 14px; transform: rotate(-28deg); }
-	.tape-br[data-tape-v="1"] { bottom: -12px; right: -8px; left: auto; width: 44px; height: 15px; transform: rotate(-44deg); }
-	.tape-br[data-tape-v="2"] { bottom: -9px; right: -5px; left: auto; width: 48px; height: 14px; transform: rotate(-35deg); }
-	.tape-br[data-tape-v="3"] { bottom: -11px; right: -7px; left: auto; width: 45px; height: 15px; transform: rotate(-52deg); }
-	.tape-br[data-tape-v="4"] { bottom: -10px; right: -6px; left: auto; width: 47px; height: 14px; transform: rotate(-31deg); }
-	.tape-br[data-tape-v="5"] { bottom: -12px; right: -7px; left: auto; width: 43px; height: 16px; transform: rotate(-39deg); }
+	/* Corners */
+	.tape[data-pos="tl"] { top: -10px; left: -6px; width: 48px; height: 19px; transform: rotate(-28deg); }
+	.tape[data-pos="tr"] { top: -10px; right: -6px; left: auto; width: 48px; height: 19px; transform: rotate(28deg); }
+	.tape[data-pos="bl"] { bottom: -10px; left: -6px; width: 48px; height: 19px; transform: rotate(28deg); }
+	.tape[data-pos="br"] { bottom: -10px; right: -6px; left: auto; width: 48px; height: 19px; transform: rotate(-28deg); }
+	/* Edges: top, right, bottom, left center */
+	.tape[data-pos="t"] { top: -10px; left: 50%; width: 52px; height: 19px; transform: translateX(-50%) rotate(-4deg); }
+	.tape[data-pos="b"] { bottom: -10px; left: 50%; width: 52px; height: 19px; transform: translateX(-50%) rotate(3deg); }
+	.tape[data-pos="r"] { right: -10px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(88deg); }
+	.tape[data-pos="l"] { left: -10px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(-88deg); }
 
 	/* Photo paper: aged, yellowed border + wear */
 	.photo-inner {
