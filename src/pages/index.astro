@@ -10,14 +10,84 @@ const files = fs.existsSync(galleryDir)
 	? fs.readdirSync(galleryDir).filter((f) => jpgRegex.test(f)).sort()
 	: [];
 
+function getExifOrientation(jpeg: Buffer): number | null {
+	// Minimal EXIF orientation reader (tag 0x0112) for JPEG APP1 Exif blocks.
+	// Returns 1..8 or null if not present/parseable.
+	if (jpeg.length < 4) return null;
+	if (jpeg[0] !== 0xff || jpeg[1] !== 0xd8) return null; // SOI
+
+	let i = 2;
+	while (i + 4 <= jpeg.length) {
+		if (jpeg[i] !== 0xff) { i += 1; continue; }
+		const marker = jpeg[i + 1];
+		i += 2;
+		// Standalone markers
+		if (marker === 0xd9 || marker === 0xda) break; // EOI / SOS
+		if (i + 2 > jpeg.length) break;
+		const segmentLen = jpeg.readUInt16BE(i);
+		if (segmentLen < 2) break;
+		const segmentStart = i + 2;
+		const segmentEnd = segmentStart + (segmentLen - 2);
+		if (segmentEnd > jpeg.length) break;
+
+		// APP1
+		if (marker === 0xe1 && segmentLen >= 8) {
+			// "Exif\0\0"
+			if (
+				jpeg[segmentStart] === 0x45 && jpeg[segmentStart + 1] === 0x78 &&
+				jpeg[segmentStart + 2] === 0x69 && jpeg[segmentStart + 3] === 0x66 &&
+				jpeg[segmentStart + 4] === 0x00 && jpeg[segmentStart + 5] === 0x00
+			) {
+				const tiffStart = segmentStart + 6;
+				if (tiffStart + 8 > segmentEnd) return null;
+
+				const isLE = jpeg[tiffStart] === 0x49 && jpeg[tiffStart + 1] === 0x49;
+				const isBE = jpeg[tiffStart] === 0x4d && jpeg[tiffStart + 1] === 0x4d;
+				if (!isLE && !isBE) return null;
+
+				const readU16 = (off: number) => isLE ? jpeg.readUInt16LE(off) : jpeg.readUInt16BE(off);
+				const readU32 = (off: number) => isLE ? jpeg.readUInt32LE(off) : jpeg.readUInt32BE(off);
+
+				if (readU16(tiffStart + 2) !== 0x002a) return null;
+				const ifd0Rel = readU32(tiffStart + 4);
+				const ifd0 = tiffStart + ifd0Rel;
+				if (ifd0 + 2 > segmentEnd) return null;
+
+				const entries = readU16(ifd0);
+				let entryOff = ifd0 + 2;
+				for (let e = 0; e < entries; e++) {
+					if (entryOff + 12 > segmentEnd) break;
+					const tag = readU16(entryOff);
+					const type = readU16(entryOff + 2);
+					const count = readU32(entryOff + 4);
+					// Orientation: tag 0x0112, type SHORT(3), count 1
+					if (tag === 0x0112 && type === 3 && count === 1) {
+						const value = isLE ? jpeg.readUInt16LE(entryOff + 8) : jpeg.readUInt16BE(entryOff + 8);
+						return value >= 1 && value <= 8 ? value : null;
+					}
+					entryOff += 12;
+				}
+			}
+		}
+
+		i = segmentEnd;
+	}
+	return null;
+}
+
 const images = files.map((file) => {
 	const fullPath = path.join(galleryDir, file);
 	const buffer = fs.readFileSync(fullPath);
 	const dimensions = imageSize(new Uint8Array(buffer));
+	const orientation = getExifOrientation(buffer);
+	const rotated = orientation === 5 || orientation === 6 || orientation === 7 || orientation === 8;
+	const rawW = dimensions?.width ?? 1200;
+	const rawH = dimensions?.height ?? 800;
 	return {
 		src: '/gallery/' + file,
-		width: dimensions?.width ?? 1200,
-		height: dimensions?.height ?? 800,
+		// PhotoSwipe needs dimensions matching the *displayed* orientation.
+		width: rotated ? rawH : rawW,
+		height: rotated ? rawW : rawH,
 	};
 });
 ---
