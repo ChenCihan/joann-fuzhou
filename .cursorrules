@@ -1,0 +1,1 @@
+I am using Astro with Tailwind CSS and PhotoSwipe. Always use Astro's built-in Image component for optimization. Keep components modular. For the gallery, prioritize a masonry layout that is responsive on mobile.
