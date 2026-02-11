@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+.font-instrument {
+	font-family: "Instrument Serif", serif;
+}
+.font-outfit {
+	font-family: "Outfit", sans-serif;
+}

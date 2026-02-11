@@ -1,17 +1,25 @@
 ---
+import fs from 'node:fs';
+import path from 'node:path';
+import imageSize from 'image-size';
+import Gallery from '../components/Gallery.astro';
 
+const galleryDir = path.join(process.cwd(), 'public', 'gallery');
+const jpgRegex = /\.(jpe?g|JPE?G)$/;
+const files = fs.existsSync(galleryDir)
+	? fs.readdirSync(galleryDir).filter((f) => jpgRegex.test(f)).sort()
+	: [];
+
+const images = files.map((file) => {
+	const fullPath = path.join(galleryDir, file);
+	const buffer = fs.readFileSync(fullPath);
+	const dimensions = imageSize(new Uint8Array(buffer));
+	return {
+		src: '/gallery/' + file,
+		width: dimensions?.width ?? 1200,
+		height: dimensions?.height ?? 800,
+	};
+});
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Gallery images={images} title="Gallery" />
