@@ -92,7 +92,8 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 		</div>
 	</header>
 
-	<div class="concrete-wall mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-16 sm:pb-24">
+	<div class="concrete-wall">
+		<div class="concrete-wall-inner mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-16 sm:pb-24">
 		{images.length > 0 ? (
 			<div
 				id="gallery"
@@ -146,6 +147,7 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 				Fuzhou, China · Early 2000s
 			</p>
 		</footer>
+		</div>
 	</div>
 </main>
 
@@ -188,9 +190,14 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 
 <style is:global>
 	.nostalgia-header {
-		background: var(--nostalgia-cream);
 		position: relative;
 		z-index: 0;
+		background-color: var(--nostalgia-cream);
+		background-image:
+			linear-gradient(180deg, rgba(28, 25, 22, 0.92) 0%, rgba(28, 25, 22, 0.88) 100%),
+			url('/textures/concrete-wall.png');
+		background-size: cover;
+		background-position: center;
 	}
 
 	.nostalgia-divider {
@@ -281,6 +288,10 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 		background:
 			linear-gradient(108deg, transparent 0%, rgba(0,0,0,0.03) 42%, transparent 48%),
 			radial-gradient(ellipse 70% 30% at 25% 88%, rgba(0,0,0,0.05), transparent 55%);
+	}
+	.concrete-wall-inner {
+		position: relative;
+		z-index: 1;
 	}
 	.concrete-wall .nostalgia-gallery {
 		position: relative;
