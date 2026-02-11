@@ -44,34 +44,45 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 		</div>
 	</header>
 
-	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
+	<div class="concrete-wall mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-16 sm:pb-24">
 		{images.length > 0 ? (
 			<div
 				id="gallery"
 				class="gallery masonry-columns nostalgia-gallery"
 				role="list"
 			>
-				{images.map((img, i) => (
+				{images.map((img, i) => {
+					const tapeV = i % 8;
+					const wearV = i % 5;
+					return (
 					<a
 						href={img.src}
 						data-pswp-width={img.width}
 						data-pswp-height={img.height}
-						class="gallery-item group block mb-6 sm:mb-8 break-inside-avoid"
+						class="gallery-item group block mb-8 sm:mb-10 break-inside-avoid"
 						role="listitem"
 					>
-						<div class="nostalgia-card overflow-hidden transition-all duration-500 ease-out group-hover:-translate-y-0.5">
-							<Image
-								src={img.src}
-								alt=""
-								width={img.width}
-								height={img.height}
-								class="w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-								loading={i < 8 ? 'eager' : 'lazy'}
-								decoding="async"
-							/>
+						<div
+							class="nostalgia-card photo-on-wall overflow-hidden transition-all duration-500 ease-out group-hover:-translate-y-0.5"
+							data-wear={wearV}
+						>
+							<span class="tape tape-1" data-tape-v={tapeV} aria-hidden="true"></span>
+							<span class="tape tape-2" data-tape-v={(tapeV + 3) % 8} aria-hidden="true"></span>
+							<div class="photo-inner">
+								<span class="photo-scuff" aria-hidden="true"></span>
+								<Image
+									src={img.src}
+									alt=""
+									width={img.width}
+									height={img.height}
+									class="vintage-thumb w-full h-auto object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+									loading={i < 8 ? 'eager' : 'lazy'}
+									decoding="async"
+								/>
+							</div>
 						</div>
 					</a>
-				))}
+				); })}
 			</div>
 		) : (
 			<div class="nostalgia-empty rounded-2xl p-12 sm:p-16 text-center max-w-xl mx-auto">
@@ -139,26 +150,158 @@ const { images, title = 'Gallery', subtitle, description } = Astro.props;
 		opacity: 0.7;
 	}
 
-	.nostalgia-card {
-		background: var(--nostalgia-paper);
-		border: 1px solid var(--nostalgia-border);
-		box-shadow: 0 2px 12px var(--nostalgia-shadow);
-		border-radius: 4px;
-		padding: 8px;
-		padding-bottom: 1.5rem;
+	/* Concrete wall: speckled texture + weathering */
+	.concrete-wall {
+		--concrete-base: #45403a;
+		--concrete-dark: #3a3631;
+		--concrete-light: #524c45;
+		--concrete-mid: #4c4740;
+		background-color: var(--concrete-base);
+		position: relative;
+		border-radius: 12px;
+		overflow: hidden;
+		/* Fine grain texture */
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.065' numOctaves='3' seed='12'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' fill='%2345403a' filter='url(%23g)' opacity='0.2'/%3E%3C/svg%3E");
+		background-size: 80px 80px;
 	}
-	.nostalgia-card img {
-		display: block;
-		border-radius: 2px;
-	}
-	.nostalgia-card::after {
+	.concrete-wall::before {
 		content: "";
-		display: block;
-		height: 0;
+		position: absolute;
+		inset: 0;
+		opacity: 0.85;
+		background-image:
+			radial-gradient(ellipse 25% 20% at 25% 35%, var(--concrete-light) 0%, transparent 50%),
+			radial-gradient(ellipse 30% 25% at 75% 65%, var(--concrete-dark) 0%, transparent 55%),
+			radial-gradient(ellipse 20% 15% at 55% 25%, var(--concrete-mid) 0%, transparent 45%),
+			radial-gradient(ellipse 35% 20% at 15% 75%, var(--concrete-dark) 0%, transparent 50%),
+			radial-gradient(ellipse 22% 18% at 88% 38%, var(--concrete-light) 0%, transparent 48%);
+		background-size: 200px 200px, 240px 240px, 180px 180px, 220px 220px, 160px 160px;
+		background-position: 0 0, 50px 80px, 120px 30px, 30px 140px, 150px 50px;
+		pointer-events: none;
 	}
-	.group:hover .nostalgia-card {
-		border-color: var(--nostalgia-accent-soft);
-		box-shadow: 0 12px 40px var(--nostalgia-shadow-hover), 0 0 0 1px var(--nostalgia-border);
+	.concrete-wall::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(108deg, transparent 0%, transparent 38%, rgba(0,0,0,0.07) 42%, transparent 48%),
+			linear-gradient(185deg, transparent 0%, rgba(0,0,0,0.05) 25%, transparent 32%),
+			radial-gradient(ellipse 70% 25% at 25% 82%, rgba(0,0,0,0.1), transparent 55%),
+			radial-gradient(ellipse 35% 50% at 88% 18%, rgba(0,0,0,0.06), transparent 50%),
+			radial-gradient(ellipse 50% 40% at 60% 95%, rgba(0,0,0,0.08), transparent 50%);
+		pointer-events: none;
+	}
+	.concrete-wall .nostalgia-gallery {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Physical photo on wall: paper border, shadow, slight rotation */
+	.nostalgia-card.photo-on-wall {
+		position: relative;
+		background: transparent;
+		border: none;
+		padding: 0;
+		box-shadow:
+			0 4px 12px rgba(0, 0, 0, 0.25),
+			0 1px 3px rgba(0, 0, 0, 0.2);
+	}
+	.gallery-item:nth-child(5n+1) .photo-on-wall { transform: rotate(-1.5deg); }
+	.gallery-item:nth-child(5n+2) .photo-on-wall { transform: rotate(1.2deg); }
+	.gallery-item:nth-child(5n+3) .photo-on-wall { transform: rotate(-0.8deg); }
+	.gallery-item:nth-child(5n+4) .photo-on-wall { transform: rotate(1.4deg); }
+	.gallery-item:nth-child(5n+5) .photo-on-wall { transform: rotate(-1.1deg); }
+	.gallery-item:hover .photo-on-wall {
+		transform: rotate(0deg) translateY(-2px);
+		box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+	}
+
+	/* Tape: realistic translucent strips with center fold, randomized per photo */
+	.tape {
+		position: absolute;
+		z-index: 2;
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			rgba(255, 250, 230, 0.75) 0%,
+			rgba(245, 238, 210, 0.6) 45%,
+			rgba(235, 225, 195, 0.55) 50%,
+			rgba(245, 238, 210, 0.6) 55%,
+			rgba(255, 250, 230, 0.75) 100%
+		);
+		box-shadow:
+			0 0 0 1px rgba(200, 190, 160, 0.4),
+			inset 0 1px 0 rgba(255,255,255,0.3),
+			1px 2px 4px rgba(0,0,0,0.15);
+		border-radius: 0;
+	}
+	.tape-1[data-tape-v="0"] { top: -6px; left: 8%; width: 42px; height: 16px; transform: rotate(-38deg); }
+	.tape-1[data-tape-v="1"] { top: -4px; left: 18%; width: 38px; height: 14px; transform: rotate(-42deg); }
+	.tape-1[data-tape-v="2"] { top: -8px; left: 5%; width: 48px; height: 12px; transform: rotate(-28deg); }
+	.tape-1[data-tape-v="3"] { top: -2px; right: 15%; left: auto; width: 40px; height: 15px; transform: rotate(35deg); }
+	.tape-1[data-tape-v="4"] { top: 12%; left: -5px; width: 14px; height: 52px; transform: rotate(-12deg); }
+	.tape-1[data-tape-v="5"] { top: -5px; left: 22%; width: 35px; height: 18px; transform: rotate(-45deg); }
+	.tape-1[data-tape-v="6"] { top: -3px; left: 12%; width: 45px; height: 13px; transform: rotate(-32deg); }
+	.tape-1[data-tape-v="7"] { top: 8%; right: -4px; left: auto; width: 12px; height: 46px; transform: rotate(8deg); }
+	.tape-2[data-tape-v="0"] { bottom: -6px; right: 12%; width: 48px; height: 14px; transform: rotate(-25deg); }
+	.tape-2[data-tape-v="1"] { bottom: -4px; right: 8%; width: 40px; height: 16px; transform: rotate(-32deg); }
+	.tape-2[data-tape-v="2"] { bottom: 15%; right: -6px; left: auto; width: 13px; height: 44px; transform: rotate(15deg); }
+	.tape-2[data-tape-v="3"] { bottom: -5px; left: 15%; right: auto; width: 44px; height: 12px; transform: rotate(28deg); }
+	.tape-2[data-tape-v="4"] { bottom: -7px; right: 20%; width: 38px; height: 15px; transform: rotate(-20deg); }
+	.tape-2[data-tape-v="5"] { bottom: 10%; left: -5px; right: auto; width: 15px; height: 50px; transform: rotate(-8deg); }
+	.tape-2[data-tape-v="6"] { bottom: -4px; right: 25%; width: 42px; height: 14px; transform: rotate(-35deg); }
+	.tape-2[data-tape-v="7"] { bottom: -6px; left: 8%; right: auto; width: 36px; height: 16px; transform: rotate(22deg); }
+
+	/* Photo paper: aged, yellowed border + wear */
+	.photo-inner {
+		position: relative;
+		padding: 12px 12px 18px 12px;
+		border-radius: 1px;
+		overflow: hidden;
+		background: linear-gradient(
+			145deg,
+			#e8e2d8 0%,
+			#ebe5da 15%,
+			#e2dcd0 40%,
+			#ddd6c8 70%,
+			#d8d0c0 100%
+		);
+		box-shadow:
+			inset 0 0 0 1px rgba(180, 170, 150, 0.4),
+			inset 0 1px 0 rgba(255,255,255,0.2);
+	}
+	.photo-on-wall[data-wear="0"] .photo-inner { filter: brightness(0.98); }
+	.photo-on-wall[data-wear="1"] .photo-inner { filter: brightness(0.95); box-shadow: inset 0 0 0 1px rgba(160,150,130,0.5), inset 0 1px 0 rgba(255,255,255,0.15); }
+	.photo-on-wall[data-wear="2"] .photo-inner { filter: brightness(0.93); background: linear-gradient(160deg, #e0d9ce 0%, #d9d1c4 50%, #d2c9ba 100%); }
+	.photo-on-wall[data-wear="3"] .photo-inner { filter: brightness(0.92); background: linear-gradient(150deg, #ddd5c8 0%, #d4cbbe 100%); box-shadow: inset 0 0 0 1px rgba(140,130,115,0.5); }
+	.photo-on-wall[data-wear="4"] .photo-inner { filter: brightness(0.9); background: linear-gradient(155deg, #d6cec0 0%, #cdc4b5 100%); }
+	/* Subtle scuff / age overlay on the print */
+	.photo-scuff {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 1;
+		opacity: 0.06;
+		background-image:
+			radial-gradient(ellipse 15% 20% at 85% 15%, rgba(100,80,60,0.5), transparent),
+			radial-gradient(ellipse 10% 15% at 10% 88%, rgba(80,70,50,0.4), transparent),
+			radial-gradient(ellipse 25% 8% at 50% 5%, rgba(120,100,80,0.2), transparent);
+	}
+	.photo-inner img {
+		display: block;
+		border-radius: 1px;
+		position: relative;
+		z-index: 0;
+	}
+	/* Vintage look only on thumbnail; lightbox shows original (colorful & sharp) */
+	.vintage-thumb {
+		filter: sepia(0.28) contrast(0.96) saturate(0.88);
+	}
+	.group:hover .vintage-thumb {
+		filter: sepia(0.14) contrast(1) saturate(0.95);
+	}
+	.group:hover .photo-on-wall {
+		border-color: transparent;
 	}
 
 	.nostalgia-empty {
