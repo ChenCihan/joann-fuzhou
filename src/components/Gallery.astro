@@ -67,6 +67,24 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 				</p>
 			)}
 			<div class="nostalgia-divider mt-6 mx-auto" aria-hidden="true"></div>
+			<nav class="header-actions mt-5 flex flex-wrap justify-center gap-2 sm:gap-3" aria-label="Jo Ann's other work">
+				<a
+					href="https://joannjoneswalczak.blogspot.com/"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="header-btn header-btn-outline"
+				>
+					Jo Ann's personal blog
+				</a>
+				<a
+					href="https://www.amazon.com/Walk-Layton-Modern-Parables-Journey/dp/B0DPTL67J2"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="header-btn header-btn-outline"
+				>
+					Her book: The Walk on Layton
+				</a>
+			</nav>
 		</div>
 	</header>
 
@@ -179,6 +197,47 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 		height: 2px;
 		background: linear-gradient(90deg, transparent, var(--nostalgia-accent), transparent);
 		opacity: 0.7;
+	}
+
+	/* Header action buttons – below title, short and descriptive */
+	.header-actions {
+		gap: 0.5rem;
+	}
+	.header-btn {
+		display: inline-block;
+		font-family: "Outfit", sans-serif;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		padding: 0.5rem 0.875rem;
+		border-radius: 0.375rem;
+		border: 1.5px solid transparent;
+		transition: color 0.2s, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+		text-decoration: none;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+	}
+	.header-btn:hover {
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+	}
+	.header-btn-outline {
+		color: var(--nostalgia-accent);
+		background: rgba(201, 162, 39, 0.1);
+		border-color: var(--nostalgia-accent);
+	}
+	.header-btn-outline:hover {
+		color: var(--nostalgia-ink);
+		background: var(--nostalgia-accent);
+		border-color: var(--nostalgia-accent);
+	}
+	.header-btn-primary {
+		color: var(--nostalgia-ink);
+		background: var(--nostalgia-accent);
+		border-color: var(--nostalgia-accent);
+	}
+	.header-btn-primary:hover {
+		background: var(--nostalgia-accent-soft);
+		border-color: var(--nostalgia-accent-soft);
+		color: var(--nostalgia-ink);
 	}
 
 	/* Concrete wall: sharp image texture only, no softening overlays */
