@@ -12,28 +12,43 @@ export interface GalleryImage {
 interface Props {
 	images: GalleryImage[];
 	title?: string;
+	subtitle?: string;
+	description?: string;
 }
-const { images, title = 'Gallery' } = Astro.props;
+const { images, title = 'Gallery', subtitle, description } = Astro.props;
 ---
 
-<Layout title={title} description="A modern photo gallery">
+<Layout title={title} description={description ?? 'A photo gallery'}>
 <main class="relative min-h-screen">
-	<header class="border-b border-stone-800/60 bg-stone-950/80 backdrop-blur-sm sticky top-0 z-20">
-		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
-			<h1 class="font-instrument text-3xl sm:text-4xl tracking-tight text-stone-100">
+	<header class="nostalgia-header">
+		<div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pt-10 pb-8 sm:pt-14 sm:pb-10 text-center">
+			{subtitle && (
+				<p class="font-outfit text-xs sm:text-sm uppercase tracking-[0.35em] text-[var(--nostalgia-accent)] font-medium mb-2">
+					{subtitle}
+				</p>
+			)}
+			<h1 class="font-instrument text-4xl sm:text-5xl lg:text-6xl tracking-tight text-[var(--nostalgia-ink)]">
 				{title}
 			</h1>
-			<p class="mt-1 font-outfit text-sm font-light text-stone-500">
-				{images.length} photo{images.length === 1 ? '' : 's'}
-			</p>
+			{description && (
+				<p class="font-cormorant text-lg sm:text-xl text-[var(--nostalgia-sepia)] mt-4 max-w-2xl mx-auto leading-relaxed italic">
+					{description}
+				</p>
+			)}
+			{images.length > 0 && (
+				<p class="font-outfit text-sm text-[var(--nostalgia-sepia)]/80 mt-3">
+					{images.length} photo{images.length === 1 ? '' : 's'}
+				</p>
+			)}
+			<div class="nostalgia-divider mt-6 mx-auto" aria-hidden="true"></div>
 		</div>
 	</header>
 
-	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+	<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
 		{images.length > 0 ? (
 			<div
 				id="gallery"
-				class="gallery masonry-columns"
+				class="gallery masonry-columns nostalgia-gallery"
 				role="list"
 			>
 				{images.map((img, i) => (
@@ -41,10 +56,10 @@ const { images, title = 'Gallery' } = Astro.props;
 						href={img.src}
 						data-pswp-width={img.width}
 						data-pswp-height={img.height}
-						class="gallery-item group block mb-4 break-inside-avoid"
+						class="gallery-item group block mb-6 sm:mb-8 break-inside-avoid"
 						role="listitem"
 					>
-						<div class="overflow-hidden rounded-xl ring-1 ring-stone-800/80 transition-all duration-300 group-hover:ring-stone-600/80 group-hover:shadow-2xl group-hover:shadow-black/30">
+						<div class="nostalgia-card overflow-hidden transition-all duration-500 ease-out group-hover:-translate-y-0.5">
 							<Image
 								src={img.src}
 								alt=""
@@ -59,12 +74,17 @@ const { images, title = 'Gallery' } = Astro.props;
 				))}
 			</div>
 		) : (
-			<div class="rounded-2xl border border-dashed border-stone-700 bg-stone-900/40 p-12 sm:p-16 text-center">
-				<p class="font-outfit text-stone-500 text-lg">
-					No photos yet. Add JPG files to <code class="rounded bg-stone-800 px-2 py-0.5 text-stone-400">public/gallery</code> and rebuild.
+			<div class="nostalgia-empty rounded-2xl p-12 sm:p-16 text-center max-w-xl mx-auto">
+				<p class="font-cormorant text-[var(--nostalgia-sepia)] text-lg leading-relaxed">
+					No photos yet. Add JPG files to <code class="rounded bg-[var(--nostalgia-border)]/60 px-2 py-0.5 text-[var(--nostalgia-ink)] font-outfit text-sm">public/gallery</code> and rebuild.
 				</p>
 			</div>
 		)}
+		<footer class="text-center py-8 sm:py-12">
+			<p class="font-outfit text-xs sm:text-sm text-[var(--nostalgia-sepia)]/70 tracking-widest uppercase">
+				Fuzhou, China · Early 2000s
+			</p>
+		</footer>
 	</div>
 </main>
 
@@ -106,29 +126,85 @@ const { images, title = 'Gallery' } = Astro.props;
 </Layout>
 
 <style is:global>
+	.nostalgia-header {
+		background: var(--nostalgia-cream);
+		position: relative;
+		z-index: 0;
+	}
+
+	.nostalgia-divider {
+		width: 48px;
+		height: 2px;
+		background: linear-gradient(90deg, transparent, var(--nostalgia-accent), transparent);
+		opacity: 0.7;
+	}
+
+	.nostalgia-card {
+		background: var(--nostalgia-paper);
+		border: 1px solid var(--nostalgia-border);
+		box-shadow: 0 2px 12px var(--nostalgia-shadow);
+		border-radius: 4px;
+		padding: 8px;
+		padding-bottom: 1.5rem;
+	}
+	.nostalgia-card img {
+		display: block;
+		border-radius: 2px;
+	}
+	.nostalgia-card::after {
+		content: "";
+		display: block;
+		height: 0;
+	}
+	.group:hover .nostalgia-card {
+		border-color: var(--nostalgia-accent-soft);
+		box-shadow: 0 12px 40px var(--nostalgia-shadow-hover), 0 0 0 1px var(--nostalgia-border);
+	}
+
+	.nostalgia-empty {
+		border: 1px dashed var(--nostalgia-border);
+		background: var(--nostalgia-paper);
+	}
+
 	.gallery.masonry-columns {
 		column-count: 2;
-		column-gap: 1rem;
+		column-gap: 1.25rem;
 	}
 	@media (min-width: 640px) {
 		.gallery.masonry-columns {
-			column-gap: 1.25rem;
+			column-gap: 1.5rem;
 		}
 	}
 	@media (min-width: 768px) {
 		.gallery.masonry-columns {
 			column-count: 3;
-			column-gap: 1.5rem;
+			column-gap: 1.75rem;
 		}
 	}
 	@media (min-width: 1024px) {
 		.gallery.masonry-columns {
 			column-count: 4;
-			column-gap: 1.5rem;
+			column-gap: 2rem;
 		}
 	}
 	.gallery-item {
 		display: block;
+	}
+
+	/* PhotoSwipe lightbox: dark overlay to match theme */
+	.pswp--custom .pswp__bg {
+		background: rgba(28, 25, 22, 0.97);
+	}
+	.pswp--custom .pswp__button--close,
+	.pswp--custom .pswp__button--arrow--left,
+	.pswp--custom .pswp__button--arrow--right,
+	.pswp--custom .pswp__button--zoom,
+	.pswp--custom .pswp__button--fs {
+		color: var(--nostalgia-ink);
+	}
+	.pswp--custom .pswp__counter {
+		color: var(--nostalgia-sepia);
+		font-family: "Outfit", sans-serif;
 	}
 </style>
 

@@ -1,7 +1,31 @@
 @import "tailwindcss";
 
+/* Nostalgia theme: dark, early-2000s album vibe */
+:root {
+	--nostalgia-cream: #1c1916;
+	--nostalgia-paper: #252220;
+	--nostalgia-sepia: #a89f94;
+	--nostalgia-ink: #e8e4df;
+	--nostalgia-accent: #c9a227;
+	--nostalgia-accent-soft: #d4b03d;
+	--nostalgia-border: #3d3832;
+	--nostalgia-shadow: rgba(0, 0, 0, 0.35);
+	--nostalgia-shadow-hover: rgba(0, 0, 0, 0.5);
+}
+
+.nostalgia-body {
+	background: var(--nostalgia-cream);
+	color: var(--nostalgia-ink);
+	background-image:
+		radial-gradient(ellipse 120% 80% at 50% -20%, rgba(201, 162, 39, 0.08), transparent),
+		linear-gradient(180deg, var(--nostalgia-cream) 0%, #221f1c 100%);
+}
+
 .font-instrument {
 	font-family: "Instrument Serif", serif;
+}
+.font-cormorant {
+	font-family: "Cormorant Garamond", serif;
 }
 .font-outfit {
 	font-family: "Outfit", sans-serif;
