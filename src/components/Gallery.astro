@@ -310,6 +310,12 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 
 	/* Tape: realistic translucent strips with center fold, randomized per photo */
 	.tape {
+		/* Subtle near-white tint variants via CSS vars (overridden per tape-v) */
+		--tape-top: 255 250 235;
+		--tape-mid: 245 239 217;
+		--tape-fold: 232 222 195;
+		--tape-edge: 200 190 160;
+
 		position: absolute;
 		z-index: 2;
 		pointer-events: none;
@@ -317,17 +323,46 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 		min-height: 18px;
 		background: linear-gradient(
 			180deg,
-			rgba(255, 250, 230, 0.75) 0%,
-			rgba(245, 238, 210, 0.6) 45%,
-			rgba(235, 225, 195, 0.55) 50%,
-			rgba(245, 238, 210, 0.6) 55%,
-			rgba(255, 250, 230, 0.75) 100%
+			rgb(var(--tape-top) / 0.74) 0%,
+			rgb(var(--tape-mid) / 0.6) 45%,
+			rgb(var(--tape-fold) / 0.54) 50%,
+			rgb(var(--tape-mid) / 0.6) 55%,
+			rgb(var(--tape-top) / 0.74) 100%
 		);
 		box-shadow:
-			0 0 0 1px rgba(200, 190, 160, 0.4),
+			0 0 0 1px rgb(var(--tape-edge) / 0.42),
 			inset 0 1px 0 rgba(255,255,255,0.3),
 			1px 2px 4px rgba(0,0,0,0.15);
 		border-radius: 0;
+	}
+	/* Tape color variants: still "tape", but not all the same white */
+	.tape[data-tape-v="0"] {
+		/* warm ivory */
+		--tape-top: 255 250 235;
+		--tape-mid: 245 239 217;
+		--tape-fold: 232 222 195;
+		--tape-edge: 200 190 160;
+	}
+	.tape[data-tape-v="1"] {
+		/* cool ivory */
+		--tape-top: 246 252 255;
+		--tape-mid: 235 245 252;
+		--tape-fold: 220 232 242;
+		--tape-edge: 175 190 205;
+	}
+	.tape[data-tape-v="2"] {
+		/* blush */
+		--tape-top: 255 246 250;
+		--tape-mid: 248 236 242;
+		--tape-fold: 236 222 230;
+		--tape-edge: 205 178 190;
+	}
+	.tape[data-tape-v="3"] {
+		/* mint */
+		--tape-top: 246 255 250;
+		--tape-mid: 235 248 242;
+		--tape-fold: 220 236 230;
+		--tape-edge: 175 205 195;
 	}
 	/* Tape count: 0 = none, 1 = one tape, 2 = two tapes. Positions: corners (tl,tr,bl,br) + edges (t,r,b,l) */
 	.tape-1, .tape-2 { display: none; }
