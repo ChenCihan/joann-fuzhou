@@ -378,8 +378,9 @@ const tapeConfigs: TapeConfig[] = images.map((_, i) => {
 	/* Edges: top, right, bottom, left center */
 	.tape[data-pos="t"] { top: -10px; left: 50%; width: 52px; height: 19px; transform: translateX(-50%) rotate(-4deg); }
 	.tape[data-pos="b"] { bottom: -10px; left: 50%; width: 52px; height: 19px; transform: translateX(-50%) rotate(3deg); }
-	.tape[data-pos="r"] { right: -10px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(88deg); }
-	.tape[data-pos="l"] { left: -10px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(-88deg); }
+	/* Vertical edge tapes: offset by ~half width so they always straddle wall+photo */
+	.tape[data-pos="r"] { right: -24px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(90deg); }
+	.tape[data-pos="l"] { left: -24px; top: 50%; width: 48px; height: 19px; transform: translateY(-50%) rotate(-90deg); }
 
 	/* Photo paper: aged, yellowed border + wear */
 	.photo-inner {
